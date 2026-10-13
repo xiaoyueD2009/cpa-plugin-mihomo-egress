@@ -53,6 +53,7 @@ jobs:
           - goos: windows
             goarch: amd64
             runner: windows-2025
+            shell: msys2 {0}
     defaults:
       run:
         shell: bash
@@ -70,11 +71,11 @@ jobs:
         if: matrix.goos == 'windows'
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: UCRT64
           path-type: inherit
           update: true
           install: >-
-            mingw-w64-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gcc
             make
             zip
 
@@ -92,6 +93,7 @@ jobs:
           echo "archive=${archive}" >> "${GITHUB_OUTPUT}"
 
       - name: Build and package
+        shell: ${{ matrix.shell || 'bash' }}
         run: >-
           make package
           VERSION="${{ steps.metadata.outputs.version }}"
