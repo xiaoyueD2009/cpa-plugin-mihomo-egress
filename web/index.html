@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Mihomo 出口管理</title>
+  <style>
+    :root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",sans-serif;color:#18241f;background:#f3f4ef;font-synthesis:none;text-rendering:optimizeLegibility;--ink:#18241f;--muted:#758079;--line:#e3e7e1;--green:#187b56;--green-soft:#e6f4eb;--amber:#a56b16;--amber-soft:#fff3da;--red:#ae4a3d;--panel:#fff;--shadow:0 20px 55px #1d322014}
+    *{box-sizing:border-box}body{margin:0;min-width:320px;min-height:100vh;background:radial-gradient(ellipse at 8% 0%,#e7f2e8 0,transparent 36%),var(--bg,#f3f4ef)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}
+    .shell{max-width:1120px;margin:0 auto;padding:34px 30px 42px}.topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:42px}.brand{display:flex;align-items:center;gap:12px}.brand-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#153d2e;color:#c4f0d0;box-shadow:0 7px 18px #153d2e26}.brand-mark svg{width:21px;height:21px}.brand-name{font-size:13px;font-weight:750;letter-spacing:.11em;text-transform:uppercase;color:#355447}.system-label{font-size:12px;color:#7c8981;letter-spacing:.08em;text-transform:uppercase}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;margin-bottom:27px}.eyebrow{margin:0 0 10px;color:#638071;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:750}.hero h1{margin:0;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacing:-.045em;font-weight:720}.hero p{margin:13px 0 0;color:#68756d;font-size:14px;line-height:1.65}.status{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:#ffffffb8;color:#66736c;font-size:12px;font-weight:650}.status-dot{width:7px;height:7px;border-radius:99px;background:#aaa}.status.online .status-dot{background:#32a46e;box-shadow:0 0 0 4px #32a46e1b}.status.offline .status-dot{background:#d58c4a}
+    .dashboard{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.75fr);gap:18px;align-items:start}.panel{border:1px solid #e1e6df;border-radius:18px;background:#ffffffd9;box-shadow:var(--shadow)}.main-panel{overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:21px 23px;border-bottom:1px solid var(--line)}.panel-title{font-size:14px;font-weight:730}.panel-subtitle{margin-top:5px;color:#869089;font-size:12px}.head-tools{display:flex;align-items:center;gap:9px}.select-wrap{position:relative}.select-wrap:after{content:"⌄";position:absolute;right:12px;top:50%;transform:translateY(-58%);color:#62736a;pointer-events:none;font-size:15px}.group-select{appearance:none;min-width:146px;padding:10px 33px 10px 12px;border:1px solid #dce3dd;border-radius:10px;background:#fff;color:#25372d;font-size:13px;font-weight:650}.icon-button{display:grid;place-items:center;width:38px;height:38px;border:1px solid #dce3dd;border-radius:10px;background:#fff;color:#506259}.icon-button:hover{background:#f3f8f3}.icon-button svg{width:16px;height:16px}.overview{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px 22px 20px}.summary-card{min-height:101px;padding:15px 16px;border:1px solid var(--line);border-radius:13px;background:#fbfcf9}.summary-top{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#839087;font-size:11px;font-weight:680}.summary-value{margin-top:14px;overflow:hidden;color:#26372d;font-size:16px;font-weight:730;text-overflow:ellipsis;white-space:nowrap}.summary-caption{margin-top:5px;color:#89938c;font-size:11px}.type-tag{padding:4px 7px;border:1px solid #e0e7e1;border-radius:6px;color:#688174;background:#f3f8f3;font-size:10px;font-weight:700}.node-list{padding:0 22px 20px}.list-heading{display:flex;align-items:center;justify-content:space-between;padding:3px 0 11px;color:#748078;font-size:11px;font-weight:720;letter-spacing:.07em;text-transform:uppercase}.node-count{color:#98a29b;font-size:11px;font-weight:550;letter-spacing:0;text-transform:none}.node-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 14px;border:1px solid var(--line);border-radius:12px;background:#fff}.node-row+.node-row{margin-top:8px}.node-row.active{border-color:#a8d3b5;background:linear-gradient(100deg,#f3fbf4,#fff 60%);box-shadow:inset 3px 0 #3e9b69}.node-main{min-width:0}.node-title-line{display:flex;align-items:center;gap:8px;min-width:0}.node-name{overflow:hidden;font-size:13px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}.current-label{flex:none;padding:4px 6px;border-radius:5px;background:var(--green-soft);color:var(--green);font-size:10px;font-weight:750}.node-meta{display:flex;align-items:center;gap:9px;margin-top:7px;color:#8a958d;font-size:11px}.node-kind{font-weight:650;color:#6e7c73}.node-address{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}.node-health{display:inline-flex;align-items:center;gap:5px}.node-health i{width:6px;height:6px;border-radius:50%;background:#aeb8b0}.node-health.good i{background:#36a46e}.node-health.bad{color:#a66d38}.node-health.bad i{background:#d99449}.node-action{min-width:100px;padding:8px 10px;border:1px solid #dce4dd;border-radius:8px;background:#fff;color:#4c6054;font-size:11px;font-weight:680}.node-action:hover:not(:disabled){border-color:#7cbb92;color:#176c4b;background:#f4fbf5}.node-action.current{border-color:#d8e9dc;background:#f1f8f2;color:#28754e}.empty-state{padding:34px 18px;text-align:center;color:#78847c;font-size:13px}
+    .side{display:grid;gap:16px}.side-panel{padding:20px}.side-title{margin:0;color:#26372d;font-size:14px;font-weight:730}.side-desc{margin:8px 0 0;color:#7b8780;font-size:12px;line-height:1.65}.audit-list{display:grid;gap:0;margin-top:15px}.audit-item{position:relative;padding:0 0 15px 16px;border-left:1px solid #dfe7df}.audit-item:last-child{padding-bottom:0;border-left-color:transparent}.audit-item:before{content:"";position:absolute;left:-4px;top:3px;width:7px;height:7px;border-radius:50%;background:#58a77a;box-shadow:0 0 0 3px #e7f4ea}.audit-change{color:#53635a;font-size:11px;line-height:1.55}.audit-change strong{color:#26372d;font-weight:700}.audit-time{margin-top:4px;color:#9aa39d;font-size:10px}.audit-empty{padding:14px 0;color:#9aa39d;font-size:12px}.notice{display:flex;gap:11px;padding:15px;border:1px solid #e6e9d5;border-radius:13px;background:#fbfbea;color:#72755a}.notice svg{flex:none;width:17px;height:17px;color:#a28a3e}.notice p{margin:0;font-size:11px;line-height:1.65}.notice strong{color:#50543b}.footer-note{margin:17px 3px 0;color:#919b94;font-size:11px;line-height:1.6}
+    .overlay{position:fixed;inset:0;z-index:10;display:none;place-items:center;padding:22px;background:#17231ed9;backdrop-filter:blur(4px)}.overlay.show{display:grid}.auth-card{width:min(100%,410px);padding:28px;border:1px solid #e3e9e2;border-radius:18px;background:#fff;box-shadow:0 25px 75px #08130c52}.auth-icon{display:grid;place-items:center;width:42px;height:42px;margin-bottom:17px;border-radius:12px;background:#eaf5ec;color:#24744d}.auth-icon svg{width:20px;height:20px}.auth-card h2{margin:0;font-size:21px;letter-spacing:-.025em}.auth-card p{margin:9px 0 20px;color:#728078;font-size:13px;line-height:1.6}.field-label{display:block;margin-bottom:7px;color:#506057;font-size:11px;font-weight:700}.token-field{width:100%;height:43px;padding:0 12px;border:1px solid #d9e2da;border-radius:9px;outline:none;background:#fbfcfa;color:#26372d;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}.token-field:focus{border-color:#6db58b;box-shadow:0 0 0 3px #70ba8e26}.primary-button{width:100%;margin-top:12px;padding:11px;border:0;border-radius:9px;background:#176c4a;color:#fff;font-size:13px;font-weight:730}.primary-button:hover{background:#125d3e}.form-error{min-height:18px;margin-top:9px;color:#ab5145;font-size:11px}.auth-foot{margin-top:13px!important;margin-bottom:0!important;color:#9aa39d!important;font-size:11px!important}.dialog{width:min(100% - 36px,430px);padding:0;border:0;border-radius:17px;background:#fff;color:var(--ink);box-shadow:0 25px 90px #0e1d1566}.dialog::backdrop{background:#14231cd1;backdrop-filter:blur(3px)}.dialog-inner{padding:23px}.dialog-label{color:#6b8b78;font-size:10px;font-weight:750;letter-spacing:.14em;text-transform:uppercase}.dialog h2{margin:9px 0 8px;font-size:21px;letter-spacing:-.025em}.dialog p{color:#748078;font-size:13px;line-height:1.6}.dialog-target{margin:15px 0;padding:12px;border-radius:9px;background:#f3f7f2;color:#344b3d;font-size:12px;font-weight:650}.dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.dialog-actions button{padding:9px 13px;border:1px solid #dce3dc;border-radius:8px;background:#fff;color:#506057;font-size:12px;font-weight:680}.dialog-actions .confirm{border-color:#176c4a;background:#176c4a;color:#fff}.toast{position:fixed;right:24px;bottom:24px;z-index:20;max-width:min(400px,calc(100vw - 48px));padding:12px 16px;border:1px solid #d8e4da;border-radius:11px;background:#fff;color:#31473a;box-shadow:0 14px 35px #15251b1d;font-size:12px;line-height:1.5;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}.toast.error{border-color:#ecd4ce;color:#963f34}.skeleton{height:62px;margin:0 0 8px;border-radius:12px;background:linear-gradient(90deg,#f0f3ef 25%,#f8faf7 50%,#f0f3ef 75%);background-size:200% 100%;animation:shimmer 1.3s infinite}@keyframes shimmer{to{background-position:-200% 0}}
+    @media(max-width:800px){.dashboard{grid-template-columns:1fr}.side{grid-template-columns:1fr 1fr}.hero{align-items:flex-start;flex-direction:column}.topline{margin-bottom:34px}.status{align-self:flex-start}}
+    @media(max-width:560px){.shell{padding:22px 15px 30px}.topline{margin-bottom:29px}.system-label{display:none}.hero{margin-bottom:20px}.panel-head{align-items:flex-start;padding:17px 15px}.head-tools{gap:6px}.group-select{min-width:112px;max-width:140px;padding:9px 27px 9px 9px;font-size:11px}.icon-button{width:35px;height:35px}.overview{gap:8px;padding:13px 13px 16px}.summary-card{min-height:91px;padding:12px}.summary-value{font-size:14px}.node-list{padding:0 13px 15px}.node-row{gap:8px;padding:12px 10px}.node-action{min-width:78px;padding:8px 7px;font-size:10px}.node-meta{gap:6px}.side{grid-template-columns:1fr}.side-panel{padding:17px}.notice{padding:13px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topline">
+      <div class="brand"><div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z" stroke="currentColor" stroke-width="1.7"/><path d="m4.5 7.8 7.5 4.4 7.5-4.4M12 12.5V20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8 5.3 16 10" stroke="currentColor" stroke-width="1.2" opacity=".65"/></svg></div><div class="brand-name">CPA · Egress</div></div>
+      <div class="system-label">Mihomo control plane</div>
+    </div>
+    <header class="hero">
+      <div><p class="eyebrow">NETWORK / ROUTING</p><h1>出口节点</h1><p>查看当前代理组与运行节点，按需手动切换 Mihomo 出口。</p></div>
+      <div id="connection" class="status"><i class="status-dot"></i><span>等待连接</span></div>
+    </header>
+    <section class="dashboard" aria-label="Mihomo 出口控制台">
+      <article class="panel main-panel">
+        <div class="panel-head">
+          <div><div class="panel-title">出口概览</div><div class="panel-subtitle">来自 Mihomo Controller 的实时状态</div></div>
+          <div class="head-tools"><label class="select-wrap"><select id="groupSelect" class="group-select" aria-label="选择代理组" disabled><option>加载中</option></select></label><button id="refresh" class="icon-button" aria-label="刷新状态" title="刷新状态" disabled><svg viewBox="0 0 24 24" fill="none"><path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        </div>
+        <div id="overview" class="overview"><div class="summary-card"><div class="summary-top">运行节点 <span class="type-tag">当前</span></div><div class="summary-value">等待连接</div><div class="summary-caption">Mihomo 实时选择</div></div><div class="summary-card"><div class="summary-top">组策略 <span class="type-tag">类型</span></div><div class="summary-value">—</div><div class="summary-caption">自动选择与手动固定</div></div></div>
+        <div class="node-list"><div class="list-heading"><span>可用节点</span><span id="nodeCount" class="node-count">—</span></div><div id="nodes"><div class="skeleton"></div><div class="skeleton"></div></div></div>
+      </article>
+      <aside class="side">
+        <section class="panel side-panel"><h2 class="side-title">最近切换</h2><p class="side-desc">记录本次插件运行期间提交的手动切换。</p><div id="audit" class="audit-list"><div class="audit-empty">暂无操作记录</div></div></section>
+        <section class="notice"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 10.8v5M12 7.7h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><p><strong>运行态切换</strong><br>操作仅调用 Mihomo 的代理组选择接口，不编辑 YAML，也不提供节点新增、删除或修改功能。</p></section>
+      </aside>
+    </section>
+    <p class="footer-note">切换记录保存在当前 CPA 插件进程内，插件重启后会清空。若你选择的是 fallback 组，手动切换会为该组设置 Mihomo 的运行态固定节点。</p>
+  </main>
+
+  <div id="authOverlay" class="overlay show" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <form id="authForm" class="auth-card">
+      <div class="auth-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7.5 10V7.5a4.5 4.5 0 1 1 9 0V10M6 10h12a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 18 21H6a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 6 10Z" stroke="currentColor" stroke-width="1.7"/><path d="M12 14v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+      <h2 id="authTitle">验证 CPA 管理权限</h2><p>输入 CPA 管理密钥以调用受保护的管理接口。密钥只在当前页面内存中使用，不会写入浏览器存储。</p>
+      <label class="field-label" for="managementKey">CPA 管理密钥</label><input id="managementKey" class="token-field" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+      <button id="authSubmit" class="primary-button" type="submit">验证并连接</button><div id="authError" class="form-error" role="status"></div>
+      <p class="auth-foot">页面通过 CPA 自身管理 API 认证；Mihomo Controller 密钥始终只保存在 CPA 服务端。</p>
+    </form>
+  </div>
+
+  <dialog id="switchDialog" class="dialog"><div class="dialog-inner"><div class="dialog-label">Confirm route change</div><h2>切换出口节点？</h2><p>此操作会立即影响使用该代理组的 CPA 出站请求。</p><div id="switchTarget" class="dialog-target"></div><div class="dialog-actions"><button id="cancelSwitch" type="button">取消</button><button id="confirmSwitch" class="confirm" type="button">确认切换</button></div></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const apiURL = action => new URL(`/v0/management/plugins/mihomo-egress/${action}`, location.origin).toString();
+      let managementKey = "";
+      let state = null;
+      let selectedGroup = "";
+      let pendingSwitch = null;
+      let toastTimer = 0;
+      const $ = id => document.getElementById(id);
+      const overlay = $("authOverlay");
+      const authForm = $("authForm");
+      const authInput = $("managementKey");
+
+      function escapeText(value) { return String(value ?? ""); }
+      function showToast(message, isError = false) {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.classList.toggle("error", isError);
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 3400);
+      }
+      async function request(action, options = {}, key = managementKey) {
+        const response = await fetch(apiURL(action), {
+          ...options,
+          mode: "same-origin",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { ...(options.headers || {}), "Authorization": `Bearer ${key}` }
+        });
+        let payload = {};
+        try { payload = await response.json(); } catch (_) { /* handled below */ }
+        if (!response.ok) {
+          if (response.status === 401) managementKey = "";
+          const error = new Error(payload.error || `请求失败（HTTP ${response.status}）`);
+          error.status = response.status;
+          throw error;
+        }
+        return payload;
+      }
+      function setConnection(text, online) {
+        const el = $("connection");
+        el.classList.toggle("online", !!online);
+        el.classList.toggle("offline", !online);
+        el.querySelector("span").textContent = text;
+      }
+      function groupTypeLabel(type) {
+        return ({Fallback:"自动回退",Selector:"手动选择",URLTest:"自动测速",LoadBalance:"负载均衡"})[type] || type || "未知策略";
+      }
+      function formatTime(raw) {
+        const date = new Date(raw);
+        if (Number.isNaN(date.getTime())) return raw;
+        return new Intl.DateTimeFormat("zh-CN", {month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(date);
+      }
+      function current() {
+        return (state?.groups || []).find(group => group.name === selectedGroup) || state?.groups?.[0] || null;
+      }
+      function render() {
+        if (!state) return;
+        const groups = state.groups || [];
+        const select = $("groupSelect");
+        const prior = selectedGroup;
+        select.replaceChildren();
+        for (const group of groups) {
+          const option = document.createElement("option");
+          option.value = group.name;
+          option.textContent = group.name;
+          select.append(option);
+        }
+        selectedGroup = groups.some(group => group.name === prior) ? prior : (groups[0]?.name || "");
+        select.value = selectedGroup;
+        select.disabled = groups.length < 2;
+        $("refresh").disabled = false;
+        const group = current();
+        if (!group) return;
+        const overview = $("overview");
+        overview.replaceChildren();
+        overview.append(summaryCard("运行节点", group.current || "未报告", groupTypeLabel(group.type), "Mihomo 实时选择"));
+        overview.append(summaryCard("手动固定", group.fixed || "自动选择", group.type, group.fixed ? "已由 Mihomo 固定" : "由代理组策略决定"));
+        const nodeRoot = $("nodes");
+        nodeRoot.replaceChildren();
+        const nodes = group.candidates || [];
+        $("nodeCount").textContent = `${nodes.length} 个节点`;
+        if (!nodes.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-state";
+          empty.textContent = "该代理组当前没有可显示的节点。";
+          nodeRoot.append(empty);
+        }
+        for (const node of nodes) nodeRoot.append(nodeRow(node, group));
+        renderAudit(state.audit || []);
+      }
+      function summaryCard(label, value, tag, caption) {
+        const card = document.createElement("div");
+        card.className = "summary-card";
+        const top = document.createElement("div"); top.className = "summary-top";
+        const name = document.createElement("span"); name.textContent = label;
+        const chip = document.createElement("span"); chip.className = "type-tag"; chip.textContent = tag;
+        top.append(name, chip);
+        const val = document.createElement("div"); val.className = "summary-value"; val.textContent = value;
+        const cap = document.createElement("div"); cap.className = "summary-caption"; cap.textContent = caption;
+        card.append(top, val, cap);
+        return card;
+      }
+      function nodeRow(node, group) {
+        const row = document.createElement("div");
+        const isCurrent = node.name === group.current;
+        const isFixed = node.name === group.fixed;
+        row.className = `node-row${isCurrent ? " active" : ""}`;
+        const main = document.createElement("div"); main.className = "node-main";
+        const line = document.createElement("div"); line.className = "node-title-line";
+        const name = document.createElement("span"); name.className = "node-name"; name.textContent = escapeText(node.name);
+        line.append(name);
+        if (isCurrent) { const currentTag = document.createElement("span"); currentTag.className = "current-label"; currentTag.textContent = "正在使用"; line.append(currentTag); }
+        const meta = document.createElement("div"); meta.className = "node-meta";
+        const kind = document.createElement("span"); kind.className = "node-kind"; kind.textContent = node.type || (node.is_group ? "策略组" : "节点"); meta.append(kind);
+        if (node.address) { const address = document.createElement("span"); address.className = "node-address"; address.textContent = node.address; meta.append(address); }
+        const health = document.createElement("span"); health.className = "node-health";
+        if (node.alive === true) { health.classList.add("good"); health.innerHTML = "<i></i>可用"; }
+        else if (node.alive === false) { health.classList.add("bad"); health.innerHTML = "<i></i>探测失败"; }
+        else if (node.delay > 0) { health.classList.add("good"); health.innerHTML = "<i></i>"; health.append(document.createTextNode(`${node.delay} ms`)); }
+        if (typeof node.alive === "boolean" || node.delay > 0) meta.append(health);
+        main.append(line, meta);
+        const button = document.createElement("button"); button.type = "button"; button.className = `node-action${isCurrent ? " current" : ""}`;
+        button.textContent = isCurrent ? (isFixed ? "当前且已固定" : "固定当前节点") : (isFixed ? "已手动固定" : "切换到此节点");
+        button.disabled = !group.switchable || (isCurrent && (group.type !== "Fallback" || isFixed));
+        button.addEventListener("click", () => openSwitch(group, node));
+        row.append(main, button);
+        return row;
+      }
+      function renderAudit(events) {
+        const list = $("audit"); list.replaceChildren();
+        if (!events.length) { const empty = document.createElement("div"); empty.className = "audit-empty"; empty.textContent = "暂无操作记录"; list.append(empty); return; }
+        for (const event of events.slice(0, 6)) {
+          const item = document.createElement("div"); item.className = "audit-item";
+          const change = document.createElement("div"); change.className = "audit-change";
+          const group = document.createElement("strong"); group.textContent = event.group;
+          const previous = document.createTextNode(` ${event.previous || "未知"} → `);
+          const selected = document.createElement("strong"); selected.textContent = event.selected;
+          change.append(group, previous, selected);
+          const time = document.createElement("div"); time.className = "audit-time"; time.textContent = formatTime(event.changed_at);
+          item.append(change, time); list.append(item);
+        }
+      }
+      async function loadState(key = managementKey) {
+        setConnection("连接中", false);
+        const button = $("refresh"); button.disabled = true;
+        try {
+          const payload = await request("state", {}, key);
+          state = payload;
+          setConnection("Mihomo 已连接", true);
+          render();
+          overlay.classList.remove("show");
+          authInput.value = "";
+          $("authError").textContent = "";
+        } catch (error) {
+          setConnection("连接失败", false);
+          const keyRejected = error.status === 401;
+          if (keyRejected || !managementKey || !state) {
+            overlay.classList.add("show");
+            $("authError").textContent = keyRejected ? "CPA 管理密钥无效，请重新输入。" : (managementKey && !state ? error.message : "");
+          } else {
+            showToast(error.message, true);
+          }
+        } finally { button.disabled = !state; }
+      }
+      function openSwitch(group, node) {
+        pendingSwitch = {group:group.name,node:node.name};
+        $("switchTarget").textContent = `${group.name} · ${node.name}`;
+        $("switchDialog").showModal();
+      }
+
+      authForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const value = authInput.value.trim();
+        if (!value) return;
+        managementKey = value;
+        $("authSubmit").disabled = true;
+        $("authSubmit").textContent = "正在验证…";
+        await loadState(value);
+        $("authSubmit").disabled = false;
+        $("authSubmit").textContent = "验证并连接";
+      });
+      $("groupSelect").addEventListener("change", event => { selectedGroup = event.target.value; render(); });
+      $("refresh").addEventListener("click", () => loadState());
+      $("cancelSwitch").addEventListener("click", () => $("switchDialog").close());
+      $("confirmSwitch").addEventListener("click", async () => {
+        if (!pendingSwitch) return;
+        const button = $("confirmSwitch"); button.disabled = true; button.textContent = "切换中…";
+        try {
+          const result = await request("switch", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(pendingSwitch)});
+          $("switchDialog").close();
+          showToast(`${result.event.group} 已请求切换至 ${result.event.selected}`);
+          await loadState();
+        } catch (error) { showToast(error.message, true); }
+        finally { button.disabled = false; button.textContent = "确认切换"; pendingSwitch = null; }
+      });
+      window.addEventListener("pagehide", () => { managementKey = ""; });
+    })();
+  </script>
+</body>
+</html>
