@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"crypto/subtle"
 	_ "embed"
 	"encoding/json"
 	"errors"
@@ -26,11 +28,14 @@ const (
 	pluginRepo     = "https://github.com/xiaoyueD2009/cpa-plugin-mihomo-egress"
 	pluginID       = "mihomo-egress"
 	resourceOpen   = "/open"
-	managementBase = "/v0/management/plugins/" + pluginID
-	statePath      = managementBase + "/state"
-	switchPath     = managementBase + "/switch"
-	resourcePath   = "/v0/resource/plugins/" + pluginID + resourceOpen
+	resourceState  = "/state"
+	resourceSwitch = "/switch"
+	resourceBase   = "/v0/resource/plugins/" + pluginID
+	resourcePath   = resourceBase + resourceOpen
+	statePath      = resourceBase + resourceState
+	switchPath     = resourceBase + resourceSwitch
 	defaultGroup   = "AI-EXIT"
+	minAccessKey   = 32
 	maxAPIResponse = 4 << 20
 	abiVersion     = 1
 	schemaVersion  = 6
@@ -43,7 +48,7 @@ const (
 	methodManagementHandle   = "management.handle"
 )
 
-var pluginVersion = "0.1.1"
+var pluginVersion = "0.1.2"
 
 //go:embed web/index.html
 var pageTemplate string
@@ -94,11 +99,6 @@ type managementRegistration struct {
 	Resources []managementResource `json:"resources,omitempty"`
 }
 
-type managementRegistrationRequest struct {
-	BasePath         string
-	ResourceBasePath string
-}
-
 type managementRoute struct {
 	Method      string
 	Path        string
@@ -130,6 +130,7 @@ type pluginConfig struct {
 	ControllerURL    string `yaml:"controller_url"`
 	ControllerSecret string `yaml:"controller_secret"`
 	GroupNames       string `yaml:"group_names"`
+	AccessKey        string `yaml:"access_key"`
 }
 
 type runtimeState struct {
@@ -229,29 +230,20 @@ func pluginRegistration() registration {
 			ConfigFields: []configField{
 				{Name: "controller_url", Type: "string", Description: "Mihomo Controller 内网地址；CPA 与 Mihomo 同一 Docker 网络时通常为 http://mihomo:9090。"},
 				{Name: "controller_secret", Type: "string", Description: "Mihomo 配置中的 secret；未设置时留空。仅由 CPA 服务端使用，不会返回给浏览器。"},
-				{Name: "group_names", Type: "string", Description: "允许查看和手动切换的组名，英文逗号分隔；默认 AI-EXIT。"},
+				{Name: "group_names", Type: "string", Description: "允许查看和手动切换的 Mihomo 组名，英文逗号分隔；多个组会显示为页面选择器；默认 AI-EXIT。"},
+				{Name: "access_key", Type: "string", Description: "插件独立访问密钥，至少 32 个字符；不使用 CPA 管理密钥。仅由 CPA 服务端校验，不会返回给浏览器。"},
 			},
 		},
 		Capabilities: registrationCapabilities{ManagementAPI: true},
 	}
 }
 
-func registerManagement(raw []byte) managementRegistration {
-	var req managementRegistrationRequest
-	if len(raw) > 0 {
-		_ = json.Unmarshal(raw, &req)
-	}
-	basePath := strings.TrimRight(strings.TrimSpace(req.BasePath), "/")
-	if basePath == "" {
-		basePath = "/v0/management"
-	}
+func registerManagement(_ []byte) managementRegistration {
 	return managementRegistration{
-		Routes: []managementRoute{
-			{Method: http.MethodGet, Path: basePath + "/plugins/" + pluginID + "/state"},
-			{Method: http.MethodPost, Path: basePath + "/plugins/" + pluginID + "/switch"},
-		},
 		Resources: []managementResource{
-			{Path: resourceOpen, Menu: "出口节点", Description: "只读查看 Mihomo 代理组与节点，并手动切换已配置节点。"},
+			{Path: resourceOpen, Menu: "Mihomo Router", Description: "查看允许的 Mihomo 出口组、节点状态，并手动切换节点。"},
+			{Path: resourceState, Description: "Mihomo Router 独立认证状态接口。"},
+			{Path: resourceSwitch, Description: "Mihomo Router 独立认证切换接口。"},
 		},
 	}
 }
@@ -268,6 +260,10 @@ func applyConfig(raw []byte) {
 			setState(runtimeState{configError: "Mihomo 出口插件 YAML 配置无效。"})
 			return
 		}
+	}
+	if len(cfg.AccessKey) < minAccessKey {
+		setState(runtimeState{config: cfg, configError: "请在 CPA 插件配置中设置独立 access_key（至少 32 个字符）；不要填写 CPA 管理密钥。"})
+		return
 	}
 	if strings.TrimSpace(cfg.ControllerURL) == "" {
 		cfg.ControllerURL = "http://mihomo:9090"
@@ -356,19 +352,48 @@ func handleManagement(raw []byte) ([]byte, error) {
 		if req.Method != http.MethodGet {
 			return okEnvelope(jsonResponse(http.StatusMethodNotAllowed, apiError{Error: "仅支持 GET。"}))
 		}
+		cfg := currentState()
+		if !authorizeResourceRequest(req.Headers, cfg) {
+			return okEnvelope(jsonResponse(http.StatusUnauthorized, apiError{Error: "插件 access_key 无效或未配置。"}))
+		}
+		if !sameOriginRequest(req.Headers) {
+			return okEnvelope(jsonResponse(http.StatusForbidden, apiError{Error: "拒绝跨站状态请求。"}))
+		}
 		return handleState()
 	case switchPath:
-		if req.Method != http.MethodPost {
-			return okEnvelope(jsonResponse(http.StatusMethodNotAllowed, apiError{Error: "仅支持 POST。"}))
+		if req.Method != http.MethodGet {
+			return okEnvelope(jsonResponse(http.StatusMethodNotAllowed, apiError{Error: "仅支持 GET。"}))
 		}
 		cfg := currentState()
+		if !authorizeResourceRequest(req.Headers, cfg) {
+			return okEnvelope(jsonResponse(http.StatusUnauthorized, apiError{Error: "插件 access_key 无效或未配置。"}))
+		}
 		if !sameOriginRequest(req.Headers) {
 			return okEnvelope(jsonResponse(http.StatusForbidden, apiError{Error: "拒绝跨站切换请求。"}))
 		}
-		return handleSwitch(req.Body, cfg)
+		input := switchRequest{Group: req.Query.Get("group"), Node: req.Query.Get("node")}
+		body, err := json.Marshal(input)
+		if err != nil {
+			return okEnvelope(jsonResponse(http.StatusBadRequest, apiError{Error: "切换请求无效。"}))
+		}
+		return handleSwitch(body, cfg)
 	default:
 		return okEnvelope(jsonResponse(http.StatusNotFound, apiError{Error: "未知的 Mihomo 出口资源。"}))
 	}
+}
+
+func authorizeResourceRequest(headers http.Header, cfg runtimeState) bool {
+	if !cfg.configured || len(cfg.config.AccessKey) < minAccessKey {
+		return false
+	}
+	const bearerPrefix = "Bearer "
+	authorization := headerValue(headers, "Authorization")
+	if !strings.HasPrefix(authorization, bearerPrefix) {
+		return false
+	}
+	provided := sha256.Sum256([]byte(strings.TrimPrefix(authorization, bearerPrefix)))
+	expected := sha256.Sum256([]byte(cfg.config.AccessKey))
+	return subtle.ConstantTimeCompare(provided[:], expected[:]) == 1
 }
 
 type apiError struct {
@@ -672,7 +697,7 @@ func configErrorPage(message string) string {
 	if strings.TrimSpace(message) == "" {
 		message = fallback
 	}
-	page, err := template.New("config").Parse(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CPA Mihomo Router</title><style>body{margin:0;background:#f3f4ef;color:#172521;font:16px system-ui,sans-serif;display:grid;min-height:100vh;place-items:center}.panel{max-width:580px;padding:36px;border:1px solid #d8ded7;border-radius:18px;background:#fff;box-shadow:0 18px 60px #16271b14}h1{margin:0 0 12px;font-size:24px}p{line-height:1.65;color:#53605a}code{font-family:ui-monospace,monospace;background:#f0f3ee;padding:2px 5px;border-radius:5px}</style><main class="panel"><h1>CPA Mihomo Router</h1><p>{{.}}</p><p>配置项位于 <code>plugins.configs.mihomo-egress</code>。Mihomo Controller 密钥只保存在 CPA 服务端；页面使用 CPA 自身的管理接口认证。</p></main></html>`)
+	page, err := template.New("config").Parse(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CPA Mihomo Router</title><style>body{margin:0;background:#f3f4ef;color:#172521;font:16px system-ui,sans-serif;display:grid;min-height:100vh;place-items:center}.panel{max-width:580px;padding:36px;border:1px solid #d8ded7;border-radius:18px;background:#fff;box-shadow:0 18px 60px #16271b14}h1{margin:0 0 12px;font-size:24px}p{line-height:1.65;color:#53605a}code{font-family:ui-monospace,monospace;background:#f0f3ee;padding:2px 5px;border-radius:5px}</style><main class="panel"><h1>CPA Mihomo Router</h1><p>{{.}}</p><p>请在 CPA 插件配置 <code>plugins.configs.mihomo-egress</code> 中设置至少 32 个字符的 <code>access_key</code>。该密钥独立于 CPA 管理密钥；Mihomo Controller 密钥也只保存在 CPA 服务端。</p></main></html>`)
 	if err != nil {
 		return "Mihomo 出口插件配置错误。"
 	}

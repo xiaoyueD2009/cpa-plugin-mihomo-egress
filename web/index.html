@@ -14,6 +14,7 @@
     .overlay{position:fixed;inset:0;z-index:10;display:none;place-items:center;padding:22px;background:#17231ed9;backdrop-filter:blur(4px)}.overlay.show{display:grid}.auth-card{width:min(100%,410px);padding:28px;border:1px solid #e3e9e2;border-radius:18px;background:#fff;box-shadow:0 25px 75px #08130c52}.auth-icon{display:grid;place-items:center;width:42px;height:42px;margin-bottom:17px;border-radius:12px;background:#eaf5ec;color:#24744d}.auth-icon svg{width:20px;height:20px}.auth-card h2{margin:0;font-size:21px;letter-spacing:-.025em}.auth-card p{margin:9px 0 20px;color:#728078;font-size:13px;line-height:1.6}.field-label{display:block;margin-bottom:7px;color:#506057;font-size:11px;font-weight:700}.token-field{width:100%;height:43px;padding:0 12px;border:1px solid #d9e2da;border-radius:9px;outline:none;background:#fbfcfa;color:#26372d;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}.token-field:focus{border-color:#6db58b;box-shadow:0 0 0 3px #70ba8e26}.primary-button{width:100%;margin-top:12px;padding:11px;border:0;border-radius:9px;background:#176c4a;color:#fff;font-size:13px;font-weight:730}.primary-button:hover{background:#125d3e}.form-error{min-height:18px;margin-top:9px;color:#ab5145;font-size:11px}.auth-foot{margin-top:13px!important;margin-bottom:0!important;color:#9aa39d!important;font-size:11px!important}.dialog{width:min(100% - 36px,430px);padding:0;border:0;border-radius:17px;background:#fff;color:var(--ink);box-shadow:0 25px 90px #0e1d1566}.dialog::backdrop{background:#14231cd1;backdrop-filter:blur(3px)}.dialog-inner{padding:23px}.dialog-label{color:#6b8b78;font-size:10px;font-weight:750;letter-spacing:.14em;text-transform:uppercase}.dialog h2{margin:9px 0 8px;font-size:21px;letter-spacing:-.025em}.dialog p{color:#748078;font-size:13px;line-height:1.6}.dialog-target{margin:15px 0;padding:12px;border-radius:9px;background:#f3f7f2;color:#344b3d;font-size:12px;font-weight:650}.dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.dialog-actions button{padding:9px 13px;border:1px solid #dce3dc;border-radius:8px;background:#fff;color:#506057;font-size:12px;font-weight:680}.dialog-actions .confirm{border-color:#176c4a;background:#176c4a;color:#fff}.toast{position:fixed;right:24px;bottom:24px;z-index:20;max-width:min(400px,calc(100vw - 48px));padding:12px 16px;border:1px solid #d8e4da;border-radius:11px;background:#fff;color:#31473a;box-shadow:0 14px 35px #15251b1d;font-size:12px;line-height:1.5;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}.toast.error{border-color:#ecd4ce;color:#963f34}.skeleton{height:62px;margin:0 0 8px;border-radius:12px;background:linear-gradient(90deg,#f0f3ef 25%,#f8faf7 50%,#f0f3ef 75%);background-size:200% 100%;animation:shimmer 1.3s infinite}@keyframes shimmer{to{background-position:-200% 0}}
     @media(max-width:800px){.dashboard{grid-template-columns:1fr}.side{grid-template-columns:1fr 1fr}.hero{align-items:flex-start;flex-direction:column}.topline{margin-bottom:34px}.status{align-self:flex-start}}
     @media(max-width:560px){.shell{padding:22px 15px 30px}.topline{margin-bottom:29px}.system-label{display:none}.hero{margin-bottom:20px}.panel-head{align-items:flex-start;padding:17px 15px}.head-tools{gap:6px}.group-select{min-width:112px;max-width:140px;padding:9px 27px 9px 9px;font-size:11px}.icon-button{width:35px;height:35px}.overview{gap:8px;padding:13px 13px 16px}.summary-card{min-height:91px;padding:12px}.summary-value{font-size:14px}.node-list{padding:0 13px 15px}.node-row{gap:8px;padding:12px 10px}.node-action{min-width:78px;padding:8px 7px;font-size:10px}.node-meta{gap:6px}.side{grid-template-columns:1fr}.side-panel{padding:17px}.notice{padding:13px}}
+    .failed-nodes{margin-top:10px;border:1px solid #ece5dc;border-radius:11px;background:#fcfaf7}.failed-nodes summary{padding:11px 13px;color:#8d7354;font-size:11px;font-weight:680;cursor:pointer;list-style:none}.failed-nodes summary::-webkit-details-marker{display:none}.failed-nodes summary:before{content:"＋";display:inline-block;width:18px;color:#ac8c64}.failed-nodes[open] summary:before{content:"−"}.failed-node-list{padding:0 8px 8px}.failed-node-list .node-row{border-color:#eee8e1;background:#fffdfa}.failed-node-list .node-row.active{border-color:#e2c6a7;background:#fffaf3;box-shadow:inset 3px 0 #c9955c}
   </style>
 </head>
 <body>
@@ -46,10 +47,10 @@
   <div id="authOverlay" class="overlay show" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <form id="authForm" class="auth-card">
       <div class="auth-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7.5 10V7.5a4.5 4.5 0 1 1 9 0V10M6 10h12a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 18 21H6a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 6 10Z" stroke="currentColor" stroke-width="1.7"/><path d="M12 14v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
-      <h2 id="authTitle">验证 CPA 管理权限</h2><p>输入 CPA 管理密钥以调用受保护的管理接口。密钥只在当前页面内存中使用，不会写入浏览器存储。</p>
-      <label class="field-label" for="managementKey">CPA 管理密钥</label><input id="managementKey" class="token-field" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+      <h2 id="authTitle">验证插件访问权限</h2><p>输入 CPA 插件配置中的独立 access_key。它与 CPA 管理密钥不同，只在当前页面内存中使用。</p>
+      <label class="field-label" for="pluginAccessKey">Mihomo Router 访问密钥</label><input id="pluginAccessKey" class="token-field" type="password" minlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" required>
       <button id="authSubmit" class="primary-button" type="submit">验证并连接</button><div id="authError" class="form-error" role="status"></div>
-      <p class="auth-foot">页面通过 CPA 自身管理 API 认证；Mihomo Controller 密钥始终只保存在 CPA 服务端。</p>
+      <p class="auth-foot">插件访问密钥和 Mihomo Controller 密钥都只由 CPA 服务端校验或使用，不会返回给页面。</p>
     </form>
   </div>
 
@@ -58,8 +59,12 @@
 
   <script>
     (() => {
-      const apiURL = action => new URL(`/v0/management/plugins/mihomo-egress/${action}`, location.origin).toString();
-      let managementKey = "";
+      const apiURL = (action, query = {}) => {
+        const url = new URL(`/v0/resource/plugins/mihomo-egress/${action}`, location.origin);
+        for (const [name, value] of Object.entries(query)) url.searchParams.set(name, value);
+        return url.toString();
+      };
+      let accessKey = "";
       let state = null;
       let selectedGroup = "";
       let pendingSwitch = null;
@@ -67,7 +72,7 @@
       const $ = id => document.getElementById(id);
       const overlay = $("authOverlay");
       const authForm = $("authForm");
-      const authInput = $("managementKey");
+      const authInput = $("pluginAccessKey");
 
       function escapeText(value) { return String(value ?? ""); }
       function showToast(message, isError = false) {
@@ -78,18 +83,19 @@
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => toast.classList.remove("show"), 3400);
       }
-      async function request(action, options = {}, key = managementKey) {
-        const response = await fetch(apiURL(action), {
-          ...options,
+      async function request(action, options = {}, key = accessKey) {
+        const query = options.query || {};
+        const response = await fetch(apiURL(action, query), {
+          method: "GET",
           mode: "same-origin",
           credentials: "same-origin",
           cache: "no-store",
-          headers: { ...(options.headers || {}), "Authorization": `Bearer ${key}` }
+          headers: { "Authorization": `Bearer ${key}` }
         });
         let payload = {};
         try { payload = await response.json(); } catch (_) { /* handled below */ }
         if (!response.ok) {
-          if (response.status === 401) managementKey = "";
+          if (response.status === 401) accessKey = "";
           const error = new Error(payload.error || `请求失败（HTTP ${response.status}）`);
           error.status = response.status;
           throw error;
@@ -138,14 +144,31 @@
         const nodeRoot = $("nodes");
         nodeRoot.replaceChildren();
         const nodes = group.candidates || [];
-        $("nodeCount").textContent = `${nodes.length} 个节点`;
-        if (!nodes.length) {
+        const failedNodes = nodes.filter(node => node.alive === false);
+        const availableNodes = nodes.filter(node => node.alive !== false).sort((a, b) => {
+          const aDelay = Number.isFinite(Number(a.delay)) && Number(a.delay) > 0 ? Number(a.delay) : Infinity;
+          const bDelay = Number.isFinite(Number(b.delay)) && Number(b.delay) > 0 ? Number(b.delay) : Infinity;
+          return aDelay - bDelay || String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
+        });
+        $("nodeCount").textContent = `${availableNodes.length} 个可用/待探测 · ${failedNodes.length} 个失败`;
+        if (!availableNodes.length) {
           const empty = document.createElement("div");
           empty.className = "empty-state";
-          empty.textContent = "该代理组当前没有可显示的节点。";
+          empty.textContent = failedNodes.length ? "当前没有可用或待探测节点，探测失败项已折叠。" : "该代理组当前没有可显示的节点。";
           nodeRoot.append(empty);
         }
-        for (const node of nodes) nodeRoot.append(nodeRow(node, group));
+        for (const node of availableNodes) nodeRoot.append(nodeRow(node, group));
+        if (failedNodes.length) {
+          const collapsed = document.createElement("details");
+          collapsed.className = "failed-nodes";
+          const summary = document.createElement("summary");
+          summary.textContent = `探测失败 · ${failedNodes.length} 个节点`;
+          const list = document.createElement("div");
+          list.className = "failed-node-list";
+          for (const node of failedNodes) list.append(nodeRow(node, group));
+          collapsed.append(summary, list);
+          nodeRoot.append(collapsed);
+        }
         renderAudit(state.audit || []);
       }
       function summaryCard(label, value, tag, caption) {
@@ -174,7 +197,7 @@
         const kind = document.createElement("span"); kind.className = "node-kind"; kind.textContent = node.type || (node.is_group ? "策略组" : "节点"); meta.append(kind);
         if (node.address) { const address = document.createElement("span"); address.className = "node-address"; address.textContent = node.address; meta.append(address); }
         const health = document.createElement("span"); health.className = "node-health";
-        if (node.alive === true) { health.classList.add("good"); health.innerHTML = "<i></i>可用"; }
+        if (node.alive === true) { health.classList.add("good"); health.innerHTML = "<i></i>"; health.append(document.createTextNode(node.delay > 0 ? `可用 · ${node.delay} ms` : "可用")); }
         else if (node.alive === false) { health.classList.add("bad"); health.innerHTML = "<i></i>探测失败"; }
         else if (node.delay > 0) { health.classList.add("good"); health.innerHTML = "<i></i>"; health.append(document.createTextNode(`${node.delay} ms`)); }
         if (typeof node.alive === "boolean" || node.delay > 0) meta.append(health);
@@ -200,7 +223,7 @@
           item.append(change, time); list.append(item);
         }
       }
-      async function loadState(key = managementKey) {
+      async function loadState(key = accessKey) {
         setConnection("连接中", false);
         const button = $("refresh"); button.disabled = true;
         try {
@@ -214,9 +237,9 @@
         } catch (error) {
           setConnection("连接失败", false);
           const keyRejected = error.status === 401;
-          if (keyRejected || !managementKey || !state) {
+          if (keyRejected || !accessKey || !state) {
             overlay.classList.add("show");
-            $("authError").textContent = keyRejected ? "CPA 管理密钥无效，请重新输入。" : (managementKey && !state ? error.message : "");
+            $("authError").textContent = keyRejected ? "插件访问密钥无效，请重新输入。" : (accessKey && !state ? error.message : "");
           } else {
             showToast(error.message, true);
           }
@@ -230,9 +253,9 @@
 
       authForm.addEventListener("submit", async event => {
         event.preventDefault();
-        const value = authInput.value.trim();
+        const value = authInput.value;
         if (!value) return;
-        managementKey = value;
+        accessKey = value;
         $("authSubmit").disabled = true;
         $("authSubmit").textContent = "正在验证…";
         await loadState(value);
@@ -246,14 +269,14 @@
         if (!pendingSwitch) return;
         const button = $("confirmSwitch"); button.disabled = true; button.textContent = "切换中…";
         try {
-          const result = await request("switch", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(pendingSwitch)});
+          const result = await request("switch", {query:pendingSwitch});
           $("switchDialog").close();
           showToast(`${result.event.group} 已请求切换至 ${result.event.selected}`);
           await loadState();
         } catch (error) { showToast(error.message, true); }
         finally { button.disabled = false; button.textContent = "确认切换"; pendingSwitch = null; }
       });
-      window.addEventListener("pagehide", () => { managementKey = ""; });
+      window.addEventListener("pagehide", () => { accessKey = ""; });
     })();
   </script>
 </body>

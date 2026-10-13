@@ -44,6 +44,14 @@ func TestParseGroupNames(t *testing.T) {
 	}
 }
 
+func TestPluginAccessKeyIsRequiredAndStrongEnough(t *testing.T) {
+	preserveRuntime(t)
+	applyConfig(lifecyclePayload("controller_url: http://mihomo:9090\ngroup_names: AI-EXIT\naccess_key: too-short\n"))
+	if currentState().configured || !strings.Contains(currentState().configError, "access_key") {
+		t.Fatalf("short plugin access key was accepted: %#v", currentState())
+	}
+}
+
 func TestStateProjectionDoesNotExposeMihomoCredentials(t *testing.T) {
 	preserveRuntime(t)
 	secret := "controller-secret-never-return-this"
@@ -93,6 +101,7 @@ func TestStateProjectionDoesNotExposeMihomoCredentials(t *testing.T) {
 func TestSwitchRouteValidatesGroupMembership(t *testing.T) {
 	preserveRuntime(t)
 	const controllerSecret = "mihomo-secret"
+	const accessKey = "0123456789abcdef0123456789abcdef"
 	var puts int
 	client := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		if r.Method == http.MethodGet && r.URL.Path == "/proxies" {
@@ -116,14 +125,23 @@ func TestSwitchRouteValidatesGroupMembership(t *testing.T) {
 		return mockHTTPResponse(r, http.StatusNotFound, ""), nil
 	})}
 	setState(runtimeState{
-		config:     pluginConfig{ControllerSecret: controllerSecret},
+		config:     pluginConfig{ControllerSecret: controllerSecret, AccessKey: accessKey},
 		controller: mustURL(t, "http://mihomo:9090"),
 		httpClient: client,
 		groups:     []string{"AI-EXIT"},
 		configured: true,
 	})
 
-	badMembership, err := callManagement(t, http.MethodPost, switchPath, http.Header{"Sec-Fetch-Site": []string{"same-origin"}}, `{"group":"AI-EXIT","node":"NOT-A-MEMBER"}`)
+	headers := http.Header{"Sec-Fetch-Site": []string{"same-origin"}, "Authorization": []string{"Bearer " + accessKey}}
+	crossSiteHeaders := http.Header{"Sec-Fetch-Site": []string{"cross-site"}, "Authorization": []string{"Bearer " + accessKey}}
+	crossSite, err := callResource(t, http.MethodGet, switchPath, crossSiteHeaders, url.Values{"group": []string{"AI-EXIT"}, "node": []string{"US-East"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if crossSite.StatusCode != http.StatusForbidden || puts != 0 {
+		t.Fatalf("cross-site switch status=%d PUTs=%d", crossSite.StatusCode, puts)
+	}
+	badMembership, err := callResource(t, http.MethodGet, switchPath, headers, url.Values{"group": []string{"AI-EXIT"}, "node": []string{"NOT-A-MEMBER"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +149,7 @@ func TestSwitchRouteValidatesGroupMembership(t *testing.T) {
 		t.Fatalf("invalid member switch status=%d PUTs=%d", badMembership.StatusCode, puts)
 	}
 
-	response, err := callManagement(t, http.MethodPost, switchPath, http.Header{"Sec-Fetch-Site": []string{"same-origin"}}, `{"group":"AI-EXIT","node":"US-East"}`)
+	response, err := callResource(t, http.MethodGet, switchPath, headers, url.Values{"group": []string{"AI-EXIT"}, "node": []string{"US-East"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,24 +166,40 @@ func TestSwitchRouteValidatesGroupMembership(t *testing.T) {
 
 func TestStateRouteReturnsFilteredState(t *testing.T) {
 	preserveRuntime(t)
+	const accessKey = "0123456789abcdef0123456789abcdef"
 	gets := 0
 	client := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		gets++
 		return mockHTTPResponse(r, http.StatusOK, `{"proxies":{"AI-EXIT":{"type":"Fallback","now":"US-West","all":["US-West"]},"US-West":{"type":"VLESS","server":"west.example","port":443}}}`), nil
 	})}
 	setState(runtimeState{
+		config:     pluginConfig{AccessKey: accessKey},
 		controller: mustURL(t, "http://mihomo:9090"),
 		httpClient: client,
 		groups:     []string{"AI-EXIT"},
 		configured: true,
 	})
 
-	response, err := callManagement(t, http.MethodGet, statePath, nil, "")
+	response, err := callResource(t, http.MethodGet, statePath, http.Header{"Sec-Fetch-Site": []string{"same-origin"}, "Authorization": []string{"Bearer " + accessKey}}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if response.StatusCode != http.StatusOK || gets != 1 {
 		t.Fatalf("authorized state status=%d Mihomo reads=%d", response.StatusCode, gets)
+	}
+	unauthorized, err := callResource(t, http.MethodGet, statePath, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if unauthorized.StatusCode != http.StatusUnauthorized || gets != 1 {
+		t.Fatalf("unauthorized state status=%d Mihomo reads=%d", unauthorized.StatusCode, gets)
+	}
+	wrongKey, err := callResource(t, http.MethodGet, statePath, http.Header{"Sec-Fetch-Site": []string{"same-origin"}, "Authorization": []string{"Bearer CPA-management-key-is-not-the-plugin-key"}}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if wrongKey.StatusCode != http.StatusUnauthorized || gets != 1 {
+		t.Fatalf("non-plugin key state status=%d Mihomo reads=%d", wrongKey.StatusCode, gets)
 	}
 }
 
@@ -178,7 +212,7 @@ func TestSwitchRejectsCrossSiteBrowserRequests(t *testing.T) {
 
 func TestResourceRouteOnlyServesThePage(t *testing.T) {
 	preserveRuntime(t)
-	setState(runtimeState{configured: true})
+	setState(runtimeState{config: pluginConfig{AccessKey: "0123456789abcdef0123456789abcdef"}, configured: true})
 	page, err := callManagement(t, http.MethodGet, resourcePath, nil, "")
 	if err != nil {
 		t.Fatal(err)
@@ -197,7 +231,7 @@ func TestResourceRouteOnlyServesThePage(t *testing.T) {
 
 func TestPluginRegistrationUsesCPA804SchemaAndIndependentRoutes(t *testing.T) {
 	preserveRuntime(t)
-	raw, err := handleMethod("plugin.register", lifecyclePayload("controller_url: http://mihomo:9090\ngroup_names: AI-EXIT\n"))
+	raw, err := handleMethod("plugin.register", lifecyclePayload("controller_url: http://mihomo:9090\ngroup_names: AI-EXIT,JP-EXIT\naccess_key: \"0123456789abcdef0123456789abcdef\"\n"))
 	if err != nil {
 		t.Fatalf("plugin.register: %v", err)
 	}
@@ -212,11 +246,14 @@ func TestPluginRegistrationUsesCPA804SchemaAndIndependentRoutes(t *testing.T) {
 	if reg.SchemaVersion != 6 || !reg.Capabilities.ManagementAPI {
 		t.Fatalf("registration schema/capabilities = %d / %#v", reg.SchemaVersion, reg.Capabilities)
 	}
-	if reg.Metadata.Name != pluginName || len(reg.Metadata.ConfigFields) != 3 {
+	if reg.Metadata.Name != pluginName || len(reg.Metadata.ConfigFields) != 4 {
 		t.Fatalf("registration metadata = %#v", reg.Metadata)
 	}
 	if !currentState().configured {
 		t.Fatal("valid independent plugin configuration was not applied")
+	}
+	if got := currentState().groups; len(got) != 2 || got[0] != "AI-EXIT" || got[1] != "JP-EXIT" {
+		t.Fatalf("configured groups = %#v, want both configured groups", got)
 	}
 	registerRaw, err := handleMethod("management.register", []byte(`{"BasePath":"/v0/management","ResourceBasePath":"/v0/resource/plugins/mihomo-egress"}`))
 	if err != nil {
@@ -230,21 +267,34 @@ func TestPluginRegistrationUsesCPA804SchemaAndIndependentRoutes(t *testing.T) {
 	if err := json.Unmarshal(resourcesEnvelope.Result, &registration); err != nil {
 		t.Fatal(err)
 	}
-	if len(registration.Resources) != 1 || registration.Resources[0].Path != resourceOpen {
+	if len(registration.Resources) != 3 || registration.Resources[0].Path != resourceOpen || registration.Resources[0].Menu != "Mihomo Router" || registration.Resources[1].Path != resourceState || registration.Resources[2].Path != resourceSwitch {
 		t.Fatalf("management resources = %#v", registration.Resources)
 	}
-	if len(registration.Routes) != 2 || registration.Routes[0].Method != http.MethodGet || registration.Routes[0].Path != statePath || registration.Routes[1].Method != http.MethodPost || registration.Routes[1].Path != switchPath {
+	if len(registration.Routes) != 0 {
 		t.Fatalf("management routes = %#v", registration.Routes)
 	}
 }
 
-func TestPageUsesCPAKeyButNeverContainsMihomoConfiguration(t *testing.T) {
+func TestPageUsesPluginKeyButNeverContainsServerConfiguration(t *testing.T) {
 	preserveRuntime(t)
 	setState(runtimeState{configError: "", configured: true})
 	page := string(pageTemplate)
-	if strings.Contains(page, "controller_secret") || strings.Contains(page, "mihomo:9090") || strings.Contains(page, "ui_access_token") || !strings.Contains(page, "CPA 管理密钥") {
+	if strings.Contains(page, "controller_secret") || strings.Contains(page, "mihomo:9090") || strings.Contains(page, "ui_access_token") || !strings.Contains(page, "Mihomo Router 访问密钥") || strings.Contains(page, "CPA 管理密钥以调用") {
 		t.Fatalf("page contains server-side configuration material")
 	}
+}
+
+func callResource(t *testing.T, method, route string, headers http.Header, query url.Values) (managementResponse, error) {
+	t.Helper()
+	request, err := json.Marshal(managementRequest{Method: method, Path: route, Headers: headers, Query: query})
+	if err != nil {
+		return managementResponse{}, err
+	}
+	raw, err := handleMethod("management.handle", request)
+	if err != nil {
+		return managementResponse{}, err
+	}
+	return decodePluginResponse(t, raw), nil
 }
 
 func lifecyclePayload(config string) []byte {
