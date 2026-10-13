@@ -43,7 +43,7 @@ const (
 	methodManagementHandle   = "management.handle"
 )
 
-var pluginVersion = "0.1.0"
+var pluginVersion = "0.1.1"
 
 //go:embed web/index.html
 var pageTemplate string

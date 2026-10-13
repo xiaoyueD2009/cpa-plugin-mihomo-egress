@@ -3,7 +3,7 @@
   "name": "CPA Mihomo Router",
   "description": "查看 Mihomo 代理组、出口节点和健康信息，并手动切换允许列表中的节点。",
   "author": "xiaoyueD2009",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": "https://github.com/xiaoyueD2009/cpa-plugin-mihomo-egress",
   "homepage": "https://github.com/xiaoyueD2009/cpa-plugin-mihomo-egress",
   "license": "MIT",
