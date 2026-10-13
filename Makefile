@@ -12,6 +12,7 @@ PLUGIN_OUTPUT ?= $(BUILD_DIR)/$(PLUGIN_NAME).$(PLUGIN_EXT)
 ARCHIVE ?= dist/$(PLUGIN_NAME)_$(VERSION)_$(GOOS)_$(GOARCH).zip
 GO_LDFLAGS ?= -s -w -X main.pluginVersion=$(VERSION)
 SHA256SUM ?= $(shell command -v sha256sum 2>/dev/null || command -v shasum)
+SHA256FLAGS ?= $(if $(findstring shasum,$(SHA256SUM)),-a 256,)
 
 .PHONY: test vet build build-linux-amd64 package clean
 
@@ -32,7 +33,7 @@ build-linux-amd64:
 package: build
 	mkdir -p dist
 	cd $(dir $(PLUGIN_OUTPUT)) && zip -q -j "$(abspath $(ARCHIVE))" "$(notdir $(PLUGIN_OUTPUT))"
-	$(SHA256SUM) -a 256 "$(ARCHIVE)" > "$(ARCHIVE).sha256"
+	cd $(dir $(ARCHIVE)) && $(SHA256SUM) $(SHA256FLAGS) "$(notdir $(ARCHIVE))" > "$(notdir $(ARCHIVE)).sha256"
 
 clean:
 	rm -rf dist

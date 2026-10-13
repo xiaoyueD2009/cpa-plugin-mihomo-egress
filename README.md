@@ -4,6 +4,12 @@
 
 插件拥有独立的 ID（`mihomo-egress`）、动态库文件、CPA 配置项和管理页面。它不修改 Keeper、CPA 主程序或其他插件。CPA 自身可按此 ID 单独启用、禁用、配置和卸载。
 
+## CPA 插件商店安装
+
+插件商店可以按 CPA 运行平台自动选择并校验对应的插件包，用户不必自行安装 Go 或手动复制动态库。官方商店要求插件仓库提供 `vX.Y.Z` GitHub Release、平台 ZIP 和 `checksums.txt`，并由插件作者向 [CLIProxyAPI-Plugins-Store](https://github.com/router-for-me/CLIProxyAPI-Plugins-Store) 提交目录条目。本仓库的 [store/registry-entry.json](store/registry-entry.json) 是供官方目录 PR 使用的条目。
+
+官方目录收录后，在 CPA 插件商店搜索 `mihomo-egress` 并安装即可。安装二进制后仍需在 CPA 插件管理页单独填写 Mihomo Controller 地址、可选的 Controller 密钥和允许的代理组；插件不会从 Mihomo 配置中复制密钥，也不会自动修改 CPA 配置。当前 CPA 版本如果没有商店界面，仍可按下方手动安装方式部署。
+
 对 fallback 组，手动切换会通过 Mihomo Controller 的 `PUT /proxies/{组名}` 设置运行态固定节点。Mihomo 官方 API 文档列出 `now`、`all` 与 `fixed` 字段，以及该 PUT 选择接口：[Mihomo APIs](https://wiki.metacubex.one/api/)。插件不会调用 `DELETE /proxies/{组名}` 清除固定选择；如需恢复自动回退，请通过 Mihomo 自己的管理方式操作。
 
 ## 独立安装、配置与卸载
@@ -71,6 +77,15 @@ make build GOOS=linux GOARCH=amd64 PLUGIN_OUTPUT=dist/linux/amd64/mihomo-egress.
 ```bash
 CC=x86_64-linux-gnu-gcc make build-linux-amd64
 ```
+
+推送 `vX.Y.Z` 标签会触发 [GitHub Actions 发布流程](.github/workflows/release.yml)，为 macOS amd64/arm64、Linux amd64/arm64 和 Windows amd64 构建商店兼容 ZIP，并汇总生成 `checksums.txt`。ZIP 根目录只含对应平台的 `mihomo-egress.dylib`、`.so` 或 `.dll`。发布资产命名遵循官方商店约定：
+
+```text
+mihomo-egress_<version>_<goos>_<goarch>.zip
+checksums.txt
+```
+
+商店目录收录由 CLIProxyAPI 官方仓库审核；后续插件版本只需发布新标签和资产，无需重复修改目录。
 
 ## 实现说明
 

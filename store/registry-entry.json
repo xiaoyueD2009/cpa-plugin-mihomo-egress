@@ -1,0 +1,9 @@
+{
+  "id": "mihomo-egress",
+  "name": "Mihomo 出口管理",
+  "description": "查看 Mihomo 代理组、出口节点和健康信息，并手动切换允许列表中的节点。",
+  "author": "xiaoyueD2009",
+  "repository": "https://github.com/xiaoyueD2009/cpa-plugin-mihomo-egress",
+  "homepage": "https://github.com/xiaoyueD2009/cpa-plugin-mihomo-egress",
+  "tags": ["mihomo", "egress", "network"]
+}
