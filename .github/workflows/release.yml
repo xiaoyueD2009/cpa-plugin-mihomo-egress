@@ -53,7 +53,6 @@ jobs:
           - goos: windows
             goarch: amd64
             runner: windows-2025
-            shell: msys2 {0}
     defaults:
       run:
         shell: bash
@@ -92,8 +91,17 @@ jobs:
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           echo "archive=${archive}" >> "${GITHUB_OUTPUT}"
 
+      - name: Build and package on Windows
+        if: matrix.goos == 'windows'
+        shell: 'msys2 {0}'
+        run: >-
+          make package
+          VERSION="${{ steps.metadata.outputs.version }}"
+          GOOS="${{ matrix.goos }}"
+          GOARCH="${{ matrix.goarch }}"
+
       - name: Build and package
-        shell: ${{ matrix.shell || 'bash' }}
+        if: matrix.goos != 'windows'
         run: >-
           make package
           VERSION="${{ steps.metadata.outputs.version }}"

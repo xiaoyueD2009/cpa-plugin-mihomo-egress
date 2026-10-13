@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	pluginName     = "Mihomo 出口管理"
+	pluginName     = "CPA Mihomo Router"
 	pluginAuthor   = "xiaoyueD2009"
 	pluginRepo     = "https://github.com/xiaoyueD2009/cpa-plugin-mihomo-egress"
 	pluginID       = "mihomo-egress"
@@ -672,7 +672,7 @@ func configErrorPage(message string) string {
 	if strings.TrimSpace(message) == "" {
 		message = fallback
 	}
-	page, err := template.New("config").Parse(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mihomo 出口管理</title><style>body{margin:0;background:#f3f4ef;color:#172521;font:16px system-ui,sans-serif;display:grid;min-height:100vh;place-items:center}.panel{max-width:580px;padding:36px;border:1px solid #d8ded7;border-radius:18px;background:#fff;box-shadow:0 18px 60px #16271b14}h1{margin:0 0 12px;font-size:24px}p{line-height:1.65;color:#53605a}code{font-family:ui-monospace,monospace;background:#f0f3ee;padding:2px 5px;border-radius:5px}</style><main class="panel"><h1>Mihomo 出口管理</h1><p>{{.}}</p><p>配置项位于 <code>plugins.configs.mihomo-egress</code>。Mihomo Controller 密钥只保存在 CPA 服务端；页面使用 CPA 自身的管理接口认证。</p></main></html>`)
+	page, err := template.New("config").Parse(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CPA Mihomo Router</title><style>body{margin:0;background:#f3f4ef;color:#172521;font:16px system-ui,sans-serif;display:grid;min-height:100vh;place-items:center}.panel{max-width:580px;padding:36px;border:1px solid #d8ded7;border-radius:18px;background:#fff;box-shadow:0 18px 60px #16271b14}h1{margin:0 0 12px;font-size:24px}p{line-height:1.65;color:#53605a}code{font-family:ui-monospace,monospace;background:#f0f3ee;padding:2px 5px;border-radius:5px}</style><main class="panel"><h1>CPA Mihomo Router</h1><p>{{.}}</p><p>配置项位于 <code>plugins.configs.mihomo-egress</code>。Mihomo Controller 密钥只保存在 CPA 服务端；页面使用 CPA 自身的管理接口认证。</p></main></html>`)
 	if err != nil {
 		return "Mihomo 出口插件配置错误。"
 	}

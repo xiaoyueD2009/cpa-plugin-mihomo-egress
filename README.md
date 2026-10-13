@@ -1,4 +1,4 @@
-# CPA Mihomo 出口管理插件
+# CPA Mihomo Router
 
 这是一个独立的 CPA v8.0.4 动态库插件，参考 [CPA Usage Keeper Plugin](https://github.com/Willxup/cpa-plugin-usage-keeper) 的注册和管理页接入方式。它只查看 Mihomo 中允许的代理组、当前节点、候选节点、类型、地址与健康信息，并允许手动选择组内节点；不编辑配置文件，也不提供节点新增、删除或修改功能。
 
@@ -8,7 +8,7 @@
 
 插件商店可以按 CPA 运行平台自动选择并校验对应的插件包，用户不必自行安装 Go 或手动复制动态库。官方商店要求插件仓库提供 `vX.Y.Z` GitHub Release、平台 ZIP 和 `checksums.txt`，并由插件作者向 [CLIProxyAPI-Plugins-Store](https://github.com/router-for-me/CLIProxyAPI-Plugins-Store) 提交目录条目。本仓库的 [store/registry-entry.json](store/registry-entry.json) 是供官方目录 PR 使用的条目。
 
-官方目录收录后，在 CPA 插件商店搜索 `mihomo-egress` 并安装即可。安装二进制后仍需在 CPA 插件管理页单独填写 Mihomo Controller 地址、可选的 Controller 密钥和允许的代理组；插件不会从 Mihomo 配置中复制密钥，也不会自动修改 CPA 配置。当前 CPA 版本如果没有商店界面，仍可按下方手动安装方式部署。
+官方目录收录后，在 CPA 插件商店搜索 **CPA Mihomo Router**（插件 ID：`mihomo-egress`）并安装即可。安装二进制后仍需在 CPA 插件管理页单独填写 Mihomo Controller 地址、可选的 Controller 密钥和允许的代理组；插件不会从 Mihomo 配置中复制密钥，也不会自动修改 CPA 配置。当前 CPA 版本如果没有商店界面，仍可按下方手动安装方式部署。
 
 对 fallback 组，手动切换会通过 Mihomo Controller 的 `PUT /proxies/{组名}` 设置运行态固定节点。Mihomo 官方 API 文档列出 `now`、`all` 与 `fixed` 字段，以及该 PUT 选择接口：[Mihomo APIs](https://wiki.metacubex.one/api/)。插件不会调用 `DELETE /proxies/{组名}` 清除固定选择；如需恢复自动回退，请通过 Mihomo 自己的管理方式操作。
 
